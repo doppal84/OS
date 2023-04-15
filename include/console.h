@@ -4,6 +4,10 @@ void clear_screen();
 void print_character(char c);
 void print_string(char* str);
 void print_line(char* str);
+void print_integer();
+int len(int toPrint);
+void strrev(char *arr, int start, int end);
+char* itoa(int number, char *arr, int base);
 #endif
 
 #define VGA_WIDTH 80

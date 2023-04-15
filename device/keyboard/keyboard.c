@@ -1,11 +1,13 @@
 #include "keyboard.h"
+
+/**
+
 unsigned char inb(unsigned short int port) {
 
         unsigned char ret;
         __asm__ __volatile__("inb %1, %0" : "=a" (ret) : "Nd" (port));
         return ret;
-}
-
+}	
 unsigned char scan(void) {
 
         unsigned char brk;
@@ -19,4 +21,4 @@ unsigned char scan(void) {
                 return key = scan;
         else
                 return 0;
-}
+}**/
