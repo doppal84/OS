@@ -1,6 +1,8 @@
 #include "console.h"
 #include "portmap.h"
 #include "keyboard.h"
+#include "string.h"
+
 #define VGA_WIDTH       80
 #define VGA_HEIGHT      25
 #define BYTES_PER_CHAR  2
@@ -11,11 +13,10 @@ static void handle_special_char(char c);
 static void set_terminal_font_color(char *color);
 static void shift_terminal_up();
 
-//char* const VGA_BUFFER = (char) 0xb8000;
-unsigned int terminal_position = 0;
+char const VGA_BUFFER = (char) 0xb8000;
+static unsigned int terminal_position = 0;
 
-Color terminal_fg_color = LIGHT_GRAY;
-Color terminal_bg_color = BLACK;
+static Color terminal_fg_color, terminal_bg_color;
 
 const char HELP_MENU[] = \
 "help -> display this menu\n"\
@@ -30,7 +31,7 @@ void init_terminal()
     terminal_bg_color = BLACK;
 }
 
-void update_cursor()
+static void update_cursor()
 {
     uint16_t cursor_position = terminal_position >> 1;
     outb(0x3D4, 0x0F);
@@ -54,9 +55,10 @@ static void read_until_newline() {
 
 void read_command(char *command_buf, char *args_buf)
 {
-    int index = 0, reading_command = 1, starting_position = terminal_position;
-    *command_buf = *args_buf = '\0';
+    int index = 0;
+    int starting_position = terminal_position;
     read_until_newline();
+    int reading_command = 1;
     for (unsigned int i = starting_position; i < terminal_position; i+=2) 
     {
         char input = VGA_BUFFER[i];
@@ -79,7 +81,7 @@ int handle_command(char *command_buf, char *args_buf)
 {
     if (!strcmp(command_buf, "help"))
     {
-        print_string(HELP_MENU);
+        print_line(HELP_MENU);
     } 
     else if (!strcmp(command_buf, "cls"))
     {
@@ -121,10 +123,6 @@ static void set_terminal_font_color(char *color)
     {
         terminal_fg_color = BLACK;
     }
-    else if (!strcmp(color, "blue"))
-    {
-        terminal_fg_color = BLUE;
-    }
     else if (!strcmp(color, "green"))
     {
         terminal_fg_color = GREEN;
@@ -153,7 +151,7 @@ static void set_terminal_font_color(char *color)
     {
         terminal_fg_color = DARK_GRAY;
     }
-    else if (!strcmp(color, "light blue"))
+     else if (!strcmp(color, "light blue"))
     {
         terminal_fg_color = LIGHT_BLUE;
     }
@@ -161,7 +159,7 @@ static void set_terminal_font_color(char *color)
     {
         terminal_fg_color = LIGHT_GREEN;
     }
-    else if (!strcmp(color, "light cyan"))
+     else if (!strcmp(color, "light cyan"))
     {
         terminal_fg_color = LIGHT_CYAN;
     }
@@ -211,12 +209,13 @@ void clear_terminal()
 
 void print_character(char c)
 {
+    //terminal_fg_color=WHITE;
     print_character_with_color(c, terminal_bg_color, terminal_fg_color);
 }
 
 void print_integer(int toPrint)
 {
-    char buf[1];
+    char buf[11];
     itoa(buf, toPrint);
     print_string(buf);
 }
@@ -268,12 +267,6 @@ static void handle_newline_character()
     terminal_position += (BYTES_PER_CHAR * VGA_WIDTH) - (terminal_position % (BYTES_PER_CHAR * VGA_WIDTH));
 }
 
-static void handle_backspace()
-{
-    VGA_BUFFER[--terminal_position] = (terminal_bg_color << 4) | terminal_fg_color;
-    VGA_BUFFER[--terminal_position] = 0;
-}
-
 static void handle_special_char(char c)
 {
     switch(c)
@@ -281,14 +274,6 @@ static void handle_special_char(char c)
         case '\n':
             handle_newline_character();
             break;
-        case '\b':
-            handle_backspace();
-            break;
-	default:
-	    VGA_BUFFER[terminal_position++] = c;
-            VGA_BUFFER[terminal_position++] = terminal_fg_color;
-
-
     }
 }
 

@@ -1,25 +1,27 @@
 #include "console.h"
 #include "keyboard.h"
-#include "portmap.h"
 
-void main() {
 
-	//clear_screen();
-	//print_character('H');
-	//print_string("ello");
-	//print_line("world");
-	//print_string("TODAY");
-	
-	/**
-	unsigned char byte;
-        while (1) {
-                while (byte = scan()) {
-                        
-                        print_character(charmap[byte]);
-                }
+const char prompt[] = "~>";
+const char banner[] = "Welcome to Astha's\nRun 'help' for a list of available commands\n\n";
+
+
+
+
+void main(void) 
+{
+    char command_buf[64], args_buf[128];
+    init_terminal();
+    clear_terminal();
+    print_line(banner);
+    while (1)
+    {
+        print_string_with_color(prompt, BLACK,LIGHT_CYAN);
+        read_command(command_buf,args_buf);
+        if (handle_command(command_buf, args_buf) < 0) 
+        {
+            return;
         }
-	
-	**/
-	print_integer(1000);
-	return;
+    }
+    return;
 }
